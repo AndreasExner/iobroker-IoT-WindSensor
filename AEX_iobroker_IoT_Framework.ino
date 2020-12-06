@@ -1088,7 +1088,7 @@ void WindSensor_get_config() {
   
   HTTPClient http;
 
-  http.begin( URL_A0_Step_Vmax);
+  http.begin( URL_A0_Step_Voltage);
   http.GET();
 
   httpResult = http.getString();
