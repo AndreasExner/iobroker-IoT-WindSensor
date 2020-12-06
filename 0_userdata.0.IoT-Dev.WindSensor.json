@@ -1,0 +1,95 @@
+{
+  "0_userdata.0.IoT-Dev.WindSensor.Interval": {
+    "common": {
+      "name": "Interval",
+      "role": "",
+      "type": "number",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    },
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.Interval",
+    "type": "state"
+  },
+  "0_userdata.0.IoT-Dev.WindSensor.WindSpeed": {
+    "common": {
+      "name": "WindSpeed",
+      "role": "",
+      "type": "number",
+      "unit": "km/h",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    },
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindSpeed",
+    "type": "state"
+  },
+  "0_userdata.0.IoT-Dev.WindSensor.WindDirection": {
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindDirection",
+    "type": "state",
+    "common": {
+      "name": "WindDirection",
+      "role": "",
+      "type": "number",
+      "read": true,
+      "write": true,
+      "unit": "°"
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "state": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator"
+    }
+  },
+  "0_userdata.0.IoT-Dev.WindSensor.WindDirectionString": {
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindDirectionString",
+    "type": "state",
+    "common": {
+      "name": "WindDirectionString",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "state": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator"
+    }
+  },
+  "0_userdata.0.IoT-Dev.WindSensor.A0_Step_Voltage": {
+    "common": {
+      "name": "A0_Step_Vmax",
+      "role": "",
+      "type": "number",
+      "unit": "V",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    },
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.A0_Step_Voltage",
+    "type": "state"
+  }
+}
