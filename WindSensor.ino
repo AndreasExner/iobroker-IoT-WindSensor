@@ -106,7 +106,7 @@ int counter = interval;  // countdown for next interval
 int analog_Pin = A0;
 int WindSpeed;
 
-String URL_A0_Step_Vmax, URL_WindSpeed, URL_WindDirection, URL_WindDirectionStr;
+String URL_A0_Step_Voltage, URL_WindSpeed, URL_WindDirection, URL_WindDirectionStr;
 double WindSensor_A0_Step_Voltage = 0.03; //default for 10V signal
 int WindSensor_Speed;
 uint16_t WindSensor_Direction;
@@ -160,7 +160,7 @@ void build_urls() {
   URL_SID = baseURL_DATA_SET + "SensorID?value=" + SensorID;
   URL_INT = baseURL_DATA_GET + "Interval";
 
-  URL_A0_Step_Vmax = baseURL_DATA_GET + "A0_Step_Vmax";
+  URL_A0_Step_Voltage = baseURL_DATA_GET + "A0_Step_Voltage";
   URL_WindSpeed = baseURL_DATA_SET + "WindSpeed?value=";
   URL_WindDirection = baseURL_DATA_SET + "WindDirection?value=";
   URL_WindDirectionStr = baseURL_DATA_SET + "WindDirectionString?value=";
