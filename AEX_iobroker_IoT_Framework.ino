@@ -1114,6 +1114,8 @@ void WindDirection_setup() {
   pinMode(RTS, OUTPUT);
   digitalWrite(RTS, LOW);
   RS485.begin(BAUD_RATE, SWSERIAL_8N1, RX, TX, false, 128, 128);
+
+  WindSensor_Direction_activated = true;
   
 }
 
