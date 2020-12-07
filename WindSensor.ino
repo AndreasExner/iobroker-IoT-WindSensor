@@ -54,8 +54,8 @@
 
 // device settings - change settings to match your requirements
 
-const char* ssid     = "<ssid>"; // Wifi SSID
-const char* password = "<password>"; //Wifi password
+const char* ssid     = "HAL9000IOT"; // Wifi SSID
+const char* password = "J79tR3D5263zkdT52"; //Wifi password
 
 String SensorID = "07"; //predefinded sensor ID, DEV by default to prevent overwriting productive data
 
@@ -76,8 +76,8 @@ bool sensor_active = false; // dectivate sensor(s) on boot (do not change)
    Change IP/FQND and path to match your environment
 */
 
-String baseURL_DEVICE_GET = "http://192.168.1.240:8087/getPlainValue/0_userdata.0.IoT-Devices." + SensorID + ".";
-String baseURL_DEVICE_SET = "http://192.168.1.240:8087/set/0_userdata.0.IoT-Devices." + SensorID + ".";
+String baseURL_DEVICE_GET = "http://192.168.67.240:8087/getPlainValue/0_userdata.0.IoT-Devices." + SensorID + ".";
+String baseURL_DEVICE_SET = "http://192.168.67.240:8087/set/0_userdata.0.IoT-Devices." + SensorID + ".";
 
 // end of device settings - don not change anything below the line until required
 
@@ -111,6 +111,7 @@ double WindSensor_A0_Step_Voltage = 0.03; //default for 10V signal
 int WindSensor_Speed;
 uint16_t WindSensor_Direction;
 String WindSensor_Direction_Str;
+bool WindSensor_Direction_activated = false;
 
 #include <SoftwareSerial.h>
 
@@ -210,7 +211,9 @@ void loop(void) {
     build_urls();
     send_data();
     WindSensor_get_config();
-
+    
+    if (sensor_active && !WindSensor_Direction_activated) {WindDirection_setup();}
+    
     get_interval();
     counter = interval;
 
