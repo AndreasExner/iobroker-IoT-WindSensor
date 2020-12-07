@@ -222,6 +222,3 @@ Every n-th tick, defined by the **`Interval`**,  the following sequence will pro
 
 
 ## Appendix
-
-
-
