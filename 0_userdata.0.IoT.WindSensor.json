@@ -92,4 +92,21 @@
     "_id": "0_userdata.0.IoT.WindSensor.A0_Step_Voltage",
     "type": "state"
   }
+  {
+  "_id": "0_userdata.0.IoT.WindSensor.WindSpeedArray",
+  "type": "state",
+  "common": {
+    "name": "WindSpeedArray",
+    "role": "",
+    "type": "string",
+    "read": true,
+    "write": true
+  },
+  "native": {},
+  "acl": {
+    "object": 1636,
+    "owner": "system.user.admin",
+    "ownerGroup": "system.group.administrator",
+    "state": 1636
+  }
 }
