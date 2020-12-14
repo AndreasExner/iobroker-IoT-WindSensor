@@ -92,7 +92,7 @@
     "_id": "0_userdata.0.IoT-Dev.WindSensor.A0_Step_Voltage",
     "type": "state"
   }
-}
+},
 {
   "_id": "0_userdata.0.IoT-Dev.WindSensor.WindSpeedArray",
   "type": "state",
