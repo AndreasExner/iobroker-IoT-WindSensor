@@ -2,13 +2,13 @@
 
   Wind speed and direction sensor for iobroker IoT Framework
 
-  Version: F5_1.0 (release)
-  Date: 2020-12-06
+  Version: F5_1.1 
+  Date: 2020-12-14
 
   This sketch has several prerquisites discribed in the documentation of the repository:
   https://github.com/AndreasExner/ioBroker-IoT-WindSensor
 
-  This sketch is based on my ioBroker IoT Framework V5.2.0 (or higher)
+  This sketch is based on my ioBroker IoT Framework V5.3.2 (or higher)
   https://github.com/AndreasExner/ioBroker-IoT-Framework
 
 
@@ -46,6 +46,7 @@
 //#define SCD30_active
 //#define SPS30_active
 #define WindSensor_active
+//#define ePaper_active
 
 //+++++++++++++++++++++++++++++++++++++++++ generic device section +++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -54,8 +55,8 @@
 
 // device settings - change settings to match your requirements
 
-const char* ssid     = "HAL9000IOT"; // Wifi SSID
-const char* password = "J79tR3D5263zkdT52"; //Wifi password
+const char* ssid     = "<sid>"; // Wifi SSID
+const char* password = "<password>"; //Wifi password
 
 String SensorID = "07"; //predefinded sensor ID, DEV by default to prevent overwriting productive data
 
@@ -76,8 +77,8 @@ bool sensor_active = false; // dectivate sensor(s) on boot (do not change)
    Change IP/FQND and path to match your environment
 */
 
-String baseURL_DEVICE_GET = "http://192.168.67.240:8087/getPlainValue/0_userdata.0.IoT-Devices." + SensorID + ".";
-String baseURL_DEVICE_SET = "http://192.168.67.240:8087/set/0_userdata.0.IoT-Devices." + SensorID + ".";
+String baseURL_DEVICE_GET = "http://192.168.1.240:8087/getPlainValue/0_userdata.0.IoT-Devices." + SensorID + ".";
+String baseURL_DEVICE_SET = "http://192.168.1.240:8087/set/0_userdata.0.IoT-Devices." + SensorID + ".";
 
 // end of device settings - don not change anything below the line until required
 
@@ -106,12 +107,15 @@ int counter = interval;  // countdown for next interval
 int analog_Pin = A0;
 int WindSpeed;
 
-String URL_A0_Step_Voltage, URL_WindSpeed, URL_WindDirection, URL_WindDirectionStr;
+String URL_A0_Step_Voltage, URL_WindSpeed, URL_WindDirection, URL_WindDirectionStr, URL_WindSpeedArray;
 double WindSensor_A0_Step_Voltage = 0.03; //default for 10V signal
-int WindSensor_Speed;
 uint16_t WindSensor_Direction;
 String WindSensor_Direction_Str;
-bool WindSensor_Direction_activated = false;
+bool WindSensor_Direction_activated = true;
+bool WindSensor_Direction_ready = false; 
+
+double WindSpeedArray[120]; //the array sizes MUST be >= interval, otherwise the code will fail during runtime! DO NOT exceed 250, otherwise the URL can be > 2000 chars
+
 
 #include <SoftwareSerial.h>
 
@@ -150,7 +154,7 @@ void setup(void) {
 
   // setup sensors
 
-  if (sensor_active) {WindDirection_setup();}
+  if (sensor_active && WindSensor_Direction_activated) {WindDirection_setup();}
 
 }
 
@@ -165,6 +169,7 @@ void build_urls() {
   URL_WindSpeed = baseURL_DATA_SET + "WindSpeed?value=";
   URL_WindDirection = baseURL_DATA_SET + "WindDirection?value=";
   URL_WindDirectionStr = baseURL_DATA_SET + "WindDirectionString?value=";
+  URL_WindSpeedArray = baseURL_DATA_SET + "WindSpeedArray?value=";
 }
 
 void send_data() {
@@ -175,7 +180,15 @@ void send_data() {
 
     String sendURL;
 
-    sendURL = URL_WindSpeed + String(WindSensor_Speed);
+    sendURL = URL_WindSpeedArray;
+    sendURL += String(WindSpeedArray[0]);
+
+    for (int i = 1; i < interval; i++) {
+
+      sendURL += ",";
+      sendURL += String(WindSpeedArray[i]);
+    }
+    
     http.begin(sendURL);
     http.GET();
 
@@ -209,13 +222,14 @@ void loop(void) {
 
     get_dynamic_config();
     build_urls();
-    send_data();
+    if (WindSensor_Direction_ready) {send_data();}
     WindSensor_get_config();
     
     if (sensor_active && !WindSensor_Direction_activated) {WindDirection_setup();}
     
     get_interval();
     counter = interval;
+    
 
   }
   else {
