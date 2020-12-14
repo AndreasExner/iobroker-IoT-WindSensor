@@ -93,3 +93,21 @@
     "type": "state"
   }
 }
+{
+  "_id": "0_userdata.0.IoT-Dev.WindSensor.WindSpeedArray",
+  "type": "state",
+  "common": {
+    "name": "WindSpeedArray",
+    "role": "",
+    "type": "string",
+    "read": true,
+    "write": true
+  },
+  "native": {},
+  "acl": {
+    "object": 1636,
+    "state": 1636,
+    "owner": "system.user.admin",
+    "ownerGroup": "system.group.administrator"
+  }
+}
