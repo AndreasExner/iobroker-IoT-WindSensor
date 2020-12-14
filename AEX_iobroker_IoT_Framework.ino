@@ -2,8 +2,8 @@
 
   Shared functions for iobroker IoT Framework
 
-  Version: V5.2.0
-  Date: 2020-12-06
+  Version: V5.3.2
+  Date: 2020-12-14
 
   Supported features / sensors:
 
@@ -13,6 +13,7 @@
   - SCD30
   - SPS30
   - WindSensor
+  - ePaper Displays
 
   https://github.com/AndreasExner/ioBroker-IoT-Framework
 
@@ -139,9 +140,7 @@ void send_ErrorLog(String Error_Msg) {
 
 void get_interval() {
 
-  if (debug) {
-    Serial.println("### get_interval");
-  }
+  if (debug) {Serial.println("### get_interval");}
 
   HTTPClient http;
 
@@ -150,9 +149,7 @@ void get_interval() {
   http.GET();
 
   interval = http.getString().toInt();
-  if (debug) {
-    Serial.println("    New Interval = " + String(interval));
-  }
+  if (debug) {Serial.println("    New Interval = " + String(interval));}
 
   http.end();
 }
@@ -372,6 +369,96 @@ String hex_to_string(uint8_t hex) {
   hex_string.toUpperCase();
   return ("0x" + hex_string);
 }
+#endif
+
+#ifdef ePaper_active
+//######################################### BME280 functions ########################################################
+
+void ePaper_setup() {
+
+  display.init();
+  display.eraseDisplay();
+  ePaper_showData_1_54_3fields("Temperatur:", "Rel. Luftfeuchte:", "CO2 Gehalt:", "--.-- °C", "--.-- %", "---- ppm", "Stand: ----------");
+  ePaperDisplay_activated = true;
+}
+
+void ePaper_get_LastUpdate() {
+
+  if (debug) {Serial.println("### get_ePaper_LastUpdate");}
+
+  HTTPClient http;
+
+  http.begin(URL_LastUpdate);
+  http.GET();
+  LastUpdate = http.getString();
+  http.end();
+
+  LastUpdate.remove(0,1);
+  LastUpdate.remove(LastUpdate.length() - 1, 1);
+
+  if (debug) {Serial.println("    LastUpdate = " + LastUpdate);}
+}
+
+void ePaper_get_dynamic_config() {
+
+  if (debug) {Serial.println("### ePaper_get_dynamic_config");}
+
+  HTTPClient http;
+
+  // Get ePaperDisplay_active
+
+  http.begin(URL_ePaperDisplay_active);
+  http.GET();
+  if (http.getString() == "true") {
+    ePaperDisplay_active = true;
+  }
+  else {
+    ePaperDisplay_active = false;
+  }
+
+  if (debug) {
+    Serial.println("    New SePaperDisplay_active setting = " + bool_to_string(ePaperDisplay_active));  
+  }
+  http.end();
+}
+
+void ePaper_showData_1_54_3fields(String field1_name, String field2_name, String field3_name, String field1_value, String field2_value, String field3_value, String ts_update) {
+  
+  const GFXfont* font_b = &FreeMonoBold18pt7b;
+  const GFXfont* font_a = &FreeMonoBold9pt7b;
+  const GFXfont* font_c = &FreeSans9pt7b;
+  
+  display.fillScreen(GxEPD_WHITE);
+  display.setTextColor(GxEPD_BLACK);
+
+  display.setCursor(0, 10);
+  display.setFont(font_a);
+  display.println(field1_name);
+  display.setCursor(10, 45);
+  display.setFont(font_b);
+  display.println(field1_value);
+
+  display.setCursor(0, 70);
+  display.setFont(font_a);
+  display.println(field2_name);
+  display.setCursor(10, 102);  
+  display.setFont(font_b);
+  display.println(field2_value);
+
+  display.setCursor(0, 132);
+  display.setFont(font_a);
+  display.println(field3_name);
+  display.setCursor(10, 163);
+  display.setFont(font_b);
+  display.println(field3_value);
+
+  display.setCursor(10, 197);
+  display.setFont(font_c);
+  display.println(ts_update);
+  
+  display.update();
+}
+
 #endif
 
 #ifdef BME280_active
@@ -757,7 +844,7 @@ void SCD30_AutoCal() {
   if (debug) {Serial.println("### SCD30_AutoCal");}
 
   String scd30_autoCal_get = bool_to_string(airSensor.getAutoSelfCalibration());
-  Serial.println("    scd30_autoCal_get = " + scd30_autoCal_get);
+  if (debug) {Serial.println("    scd30_autoCal_get = " + scd30_autoCal_get);}
 
   HTTPClient http;
 
@@ -1088,7 +1175,7 @@ void WindSensor_get_config() {
   
   HTTPClient http;
 
-  http.begin( URL_A0_Step_Voltage);
+  http.begin(URL_A0_Step_Voltage);
   http.GET();
 
   httpResult = http.getString();
@@ -1103,10 +1190,14 @@ void WindSpeed_get_data() {
   if (debug) {Serial.println("### WindSpeed_get_data");}
 
   int Analog_Input = analogRead(analog_Pin);
-  WindSensor_Speed = Analog_Input * WindSensor_A0_Step_Voltage * 3.6;
+  double WindSensor_Speed = Analog_Input * WindSensor_A0_Step_Voltage * 3.6;
 
- if (debug) {Serial.println("    Analog_Input = " + String(Analog_Input));}
- if (debug) {Serial.println("    WindSensor_Speed = " + String(WindSensor_Speed));}
+  int x = interval - counter;
+  WindSpeedArray[x] = WindSensor_Speed;
+
+  if (debug) {Serial.println("    Analog_Input = " + String(Analog_Input));}
+  if (debug) {Serial.println("    WindSpeedArray[" + String(x) + "] = " + String(WindSpeedArray[x]));}
+   
 }
 
 void WindDirection_setup() {
@@ -1114,15 +1205,11 @@ void WindDirection_setup() {
   pinMode(RTS, OUTPUT);
   digitalWrite(RTS, LOW);
   RS485.begin(BAUD_RATE, SWSERIAL_8N1, RX, TX, false, 128, 128);
-
-  WindSensor_Direction_activated = true;
   
 }
 
-uint16_t Modbus_calc_crc(byte buf[], int len) {
+uint16_t Calc_CRC(byte buf[], int len) {
 
-  // calculates the CRC for a modbus frame. Important: the last two bytes are ignored (expect CRC here)
-  
   uint16_t crc = 0xFFFF;
 
   for (int pos = 0; pos < (len - 2); pos++) {  
@@ -1140,6 +1227,21 @@ uint16_t Modbus_calc_crc(byte buf[], int len) {
   // Note, this number has low and high bytes swapped, so use it accordingly (or swap bytes)
   return crc;
 }
+
+bool CRC_Check(byte buf[], int len) {
+
+  uint16_t CRC;
+  uint8_t CRC_MSB;
+  uint8_t CRC_LSB;
+  
+  CRC = Calc_CRC(buf, len);
+  CRC_MSB = CRC >> 8;
+  CRC_LSB = CRC;
+
+  if (buf[len -2] == CRC_LSB && buf[len -1] == CRC_MSB) {return true;}
+  else {return false;}
+}
+
 
 String WindDirection_get_name(uint16_t wind_direction) {
 
@@ -1167,25 +1269,32 @@ void WindDirection_get_data() {
 
   if (debug) {Serial.println("### WindDirection_get_data");}
 
-  byte modbus_buf[9];
-  byte modbus_request[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x02, 0xC4, 0x0B};
+  byte read_buffer[9];
+  byte request_buffer[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x02, 0xC4, 0x0B};
+  int request_buffer_length = 8;
 
-  /*uint16_t CRC = Calc_ModRTU_CRC(Anemometer_request, 8);
-  uint8_t CRC_MSB = CRC >> 8;
-  uint8_t CRC_LSB = CRC;
-  String CRC_Output = hex_to_string(CRC_LSB) + " " + hex_to_string(CRC_MSB);
-  Serial.println("CRC: " + CRC_Output);*/
+  // send request to sensor
+  
+  if (debug) {Serial.print("    Write: ");}
+  
+  digitalWrite(RTS, HIGH);     // init Transmit
+  int write_length = RS485.write(request_buffer, request_buffer_length);
+  digitalWrite(RTS, LOW);
 
   if (debug) {
-    Serial.print("    Write: ");
-    digitalWrite(RTS, HIGH);     // init Transmit
-    Serial.print(RS485.write(modbus_request, 8));
-    Serial.print("\n");
+    Serial.print(write_length);
+    Serial.print(" byte\n");
   }
+
+  if (request_buffer_length != write_length) {
+    send_ErrorLog("SoftSerial write error");
+    reboot_on_error();
+  }
+   
+  // read answer
 
   if (debug) {Serial.println("    Read: ");}
   
-  digitalWrite(RTS, LOW);      // init Receive
   int x = 10;
   if (debug) {Serial.print("    Wait for data ");}
   while (!RS485.available() && x > 0) {
@@ -1194,25 +1303,36 @@ void WindDirection_get_data() {
       delay(100);
       x--;
   }
+  if (debug) {Serial.print("\n");}  
 
   if (x > 0) {
     
-    RS485.readBytes(modbus_buf, 9);
-
-    if (debug) {
-      Serial.print("    Buffer : ");
-      for ( byte i = 0; i < 9; i++ ) {
-        Serial.print(hex_to_string(modbus_buf[i]));
-        Serial.print(" ");
-      }
-      Serial.print("\n");
+    RS485.readBytes(read_buffer, 9);
     
-      WindSensor_Direction = ((uint16_t)modbus_buf[3] << 8) | modbus_buf[4];
-      WindSensor_Direction_Str = WindDirection_get_name(WindSensor_Direction);
+    if (CRC_Check(read_buffer, 9)) {
+
+      if (debug) {
+        Serial.print("    Buffer : ");
+        for ( byte i = 0; i < 9; i++ ) {
+          Serial.print(hex_to_string(read_buffer[i]));
+          Serial.print(" ");
+        }
+        Serial.print("\n");
+      
+        WindSensor_Direction = ((uint16_t)read_buffer[3] << 8) | read_buffer[4];
+        WindSensor_Direction_Str = WindDirection_get_name(WindSensor_Direction);
+        WindSensor_Direction_ready = true;
+      }
+    }
+    else {
+      
+      if (debug){Serial.println("    RX CRC ERROR");}
+      RS485.flush();
+      WindSensor_Direction_ready = false;
     }
   }
   else {
-    if (debug) {Serial.println(" - no data");}
+    if (debug) {Serial.println("    no data");}
     WindSensor_Direction = 0;
     WindSensor_Direction_Str = "n/a";
   }
@@ -1220,10 +1340,11 @@ void WindDirection_get_data() {
 
 void WindSensor_serial_output() {
 
+  int x = interval - counter;
   String output;
 
   output = "WindSensor -- "; 
-  output += "WindSpeed = " + String(WindSensor_Speed);
+  output += "WindSpeed = " + String(WindSpeedArray[x]);
   output += ", WindDirection = " + WindSensor_Direction_Str;
   output += " (" + String(WindSensor_Direction) + ")";
  
