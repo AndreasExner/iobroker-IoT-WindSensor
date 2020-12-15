@@ -26,7 +26,17 @@ Both are sold from different sellers and under different names as well. Since th
 
 The raw data will be send to the ioborker, because de nosing can be a challenging part of the this project. 
 
-For the wind speed and direction, the value is measured with round about 1 Hz and written into an array. The array is submitted to iobroker on every interval. The maximum size of the array is limited by the maximum length of an URL (2000 characters) to 250. The recommended interval for a "real time" display should be between 30 and 60. On the iobroker side, the array must be processed do extract the required information. 
+For the wind speed and direction, the value is measured with round about 1 Hz and written into an array. The array is submitted to iobroker on every interval. The maximum size of the array is limited by the maximum length of an URL (2000 characters) to 250. The recommended interval for a "real time" display should be between 30 and 60. On the iobroker side, the array must be processed do extract the required information (see processWindSensorData.js for details).
+
+**Important: the target datapoints are not part of the json files!**
+
+
+
+#### Testing / debugging
+
+Often the remote device is mounted somewhere on a rooftop or another inconvenient place. That's where this tool comes in and offers you a simulation for your lab:
+
+[AndreasExner/RS485-UART-EchoTest: This sketch is useful for debugging and testing RS485/UART wirings. (github.com)](https://github.com/AndreasExner/RS485-UART-EchoTest)
 
 
 
@@ -123,7 +133,7 @@ bool sensor_active = false; // dectivate sensor(s) on boot (do not change)
 
 
 
-#### Base URL's
+#### Device base URL's
 
 ```c++
 /*
@@ -201,6 +211,26 @@ These datapoints are for output only:
 
 
 
+#### Build datapoint URL's function
+
+```c++
+void build_urls() {
+
+  URL_SID = baseURL_DATA_SET + "SensorID?value=" + SensorID;
+  URL_INT = baseURL_DATA_GET + "Interval";
+
+  URL_A0_Step_Voltage = baseURL_DATA_GET + "A0_Step_Voltage";
+  URL_crcErrors = baseURL_DATA_SET + "crcErrors?value=";
+  URL_rxTimeOuts = baseURL_DATA_SET + "rxTimeOuts?value=";
+  URL_WindDirectionArray = baseURL_DATA_SET + "WindDirectionArray?value=";
+  URL_WindSpeedArray = baseURL_DATA_SET + "WindSpeedArray?value=";
+}
+```
+
+These url's are pointing to the iobroker datapoints, defined in the json files and can be changed if required.
+
+
+
 ## How it works
 
 #### Boot phase / setup
@@ -237,3 +267,4 @@ Every n-th tick, defined by the **`Interval`**,  the following sequence will pro
 
 
 ## Appendix
+
