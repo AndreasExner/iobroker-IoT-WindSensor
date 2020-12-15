@@ -6,7 +6,7 @@
 
 **Please refer to this documentation for the the basic setup and configuration.**
 
-Required Version: 5.2.0 (or higher)
+Required Version: 5.3.2 (or higher)
 
 
 
@@ -22,7 +22,13 @@ This sketch reads the wind speed and direction from devices similar to these (**
 
 Both are sold from different sellers and under different names as well. Since the wind speed sensor offers an analog output the wind direction sensor uses the RS486 interface.
 
-The raw data will be send to the ioborker, because oversampling can be a challenging part of the this project. 
+#### De noising
+
+The raw data will be send to the ioborker, because de nosing can be a challenging part of the this project. 
+
+For the wind speed and direction, the value is measured with round about 1 Hz and written into an array. The array is submitted to iobroker on every interval. The maximum size of the array is limited by the maximum length of an URL (2000 characters) to 250. The recommended interval for a "real time" display should be between 30 and 60. On the iobroker side, the array must be processed do extract the required information. 
+
+
 
 #### Wiring
 
@@ -36,7 +42,16 @@ Voltage divider resistors: 330 ohm and 150 ohm, 1% or better, 1/4 watts
 
 ## History
 
-Version: F5_1.0 (release) 2020-12-06
+**Version: F5_1.1 2020-12-14**
+
+- Major bugfix: sketch does not work with debug=false
+- added CRC check for UART/RS485
+- changed wind speed data transfer (for de-noising)
+- minor fixes and improvements
+
+
+
+**Version: F5_1.0 (release) 2020-12-06**
 
 
 
@@ -177,11 +192,11 @@ It is recommended to keep the datapoints in both sections identical to avoid err
 
 - **`Interval`** [10] Defines the delay (in seconds) between two data transmissions 
 - **`A0_Step_Voltage`** The voltage per step of the A/D converter for the  windspeed sensor. Due to the line resistance it might be necessary to adjust these values individually. A good point to start is 0.03 V.
-- These datapoints are for output only:
 
-- **`WindDirection`** Wind direction in degrees
-- **`WindDirectionString`** Wind direction as string
-- **`WindSpeed`** Wind speed
+These datapoints are for output only:
+
+- **`WindDirectionArray`** Array of wind direction values
+- **`WindSpeedArray`** Array of wind speed values
 - **`SensorID`** Sensor device ID
 
 
