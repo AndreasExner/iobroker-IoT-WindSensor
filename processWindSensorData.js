@@ -5,8 +5,8 @@ on({id: "0_userdata.0.IoT.WindSensor.WindSpeedArray", change: "any"}, function (
     var value = obj.state.val;
     var oldValue = obj.oldState.val;
 
-    setState('0_userdata.0.IoT.Weather.WindSpeed', calc_PDF(value) * 3.6);  //in km/h
-    setState('0_userdata.0.IoT.Weather.WindGuest', calc_MAX(value) * 3.6);  //in km/h
+    setState('0_userdata.0.IoT.Weather.WindSpeed', calc_PDF(value));  //in km/h
+    setState('0_userdata.0.IoT.Weather.WindGuest', calc_MAX(value));  //in km/h
 
 });
 
