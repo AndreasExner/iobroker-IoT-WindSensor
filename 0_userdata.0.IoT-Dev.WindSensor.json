@@ -17,12 +17,11 @@
     "_id": "0_userdata.0.IoT-Dev.WindSensor.Interval",
     "type": "state"
   },
-  "0_userdata.0.IoT-Dev.WindSensor.WindSpeed": {
+    "0_userdata.0.IoT-Dev.WindSensor.SensorID": {
     "common": {
-      "name": "WindSpeed",
+      "name": "SensorID",
       "role": "",
       "type": "number",
-      "unit": "km/h",
       "read": true,
       "write": true
     },
@@ -33,20 +32,37 @@
       "ownerGroup": "system.group.administrator",
       "state": 1636
     },
-    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindSpeed",
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.SensorID",
     "type": "state"
   },
-  "0_userdata.0.IoT-Dev.WindSensor.WindDirection": {
-    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindDirection",
-    "type": "state",
+  "0_userdata.0.IoT-Dev.WindSensor.rxTimeOuts": {
     "common": {
-      "name": "WindDirection",
+      "name": "rxTimeOuts",
       "role": "",
       "type": "number",
       "read": true,
-      "write": true,
-      "unit": "°"
+      "write": true
     },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    },
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.rxTimeOuts",
+    "type": "state"
+  },
+  "0_userdata.0.IoT-Dev.WindSensor.crcErrors": {
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.crcErrors",
+    "type": "state",
+    "common": {
+      "name": "crcErrors",
+      "role": "",
+      "type": "number",
+      "read": true,
+      "write": true
+	  },
     "native": {},
     "acl": {
       "object": 1636,
@@ -55,11 +71,11 @@
       "ownerGroup": "system.group.administrator"
     }
   },
-  "0_userdata.0.IoT-Dev.WindSensor.WindDirectionString": {
-    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindDirectionString",
+  "0_userdata.0.IoT-Dev.WindSensor.WindDirectionArray": {
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindDirectionArray",
     "type": "state",
     "common": {
-      "name": "WindDirectionString",
+      "name": "WindDirectionArray",
       "role": "",
       "type": "string",
       "read": true,
@@ -73,9 +89,28 @@
       "ownerGroup": "system.group.administrator"
     }
   },
+  "0_userdata.0.IoT-Dev.WindSensor.WindDSpeedArray": {
+    "_id": "0_userdata.0.IoT-Dev.WindSensor.WindSpeedArray",
+    "type": "state",
+    "common": {
+      "name": "WindSpeedArray",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "state": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator"
+    }
+  },
+
   "0_userdata.0.IoT-Dev.WindSensor.A0_Step_Voltage": {
     "common": {
-      "name": "A0_Step_Vmax",
+      "name": "A0_Step_Voltage",
       "role": "",
       "type": "number",
       "unit": "V",
@@ -91,23 +126,5 @@
     },
     "_id": "0_userdata.0.IoT-Dev.WindSensor.A0_Step_Voltage",
     "type": "state"
-  }
-},
-{
-  "_id": "0_userdata.0.IoT-Dev.WindSensor.WindSpeedArray",
-  "type": "state",
-  "common": {
-    "name": "WindSpeedArray",
-    "role": "",
-    "type": "string",
-    "read": true,
-    "write": true
-  },
-  "native": {},
-  "acl": {
-    "object": 1636,
-    "state": 1636,
-    "owner": "system.user.admin",
-    "ownerGroup": "system.group.administrator"
   }
 }
