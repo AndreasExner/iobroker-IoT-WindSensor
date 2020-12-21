@@ -6,7 +6,13 @@
 
 **Please refer to this documentation for the the basic setup and configuration.**
 
-Required Version: 5.2.0 (or higher)
+Required Version: 5.3.2 (or higher)
+
+
+
+## Important: Serial output
+
+This sketch needs the hardware serial interface for the communication with the wind direction sensor (RS485). That requires to change the serial output for debug and runtime information (Serial.print) to **serial1**. The attached version of the framework includes the changes already.
 
 
 
@@ -22,11 +28,27 @@ This sketch reads the wind speed and direction from devices similar to these (**
 
 Both are sold from different sellers and under different names as well. Since the wind speed sensor offers an analog output the wind direction sensor uses the RS486 interface.
 
-The raw data will be send to the ioborker, because oversampling can be a challenging part of the this project. 
+#### De noising
+
+The raw data will be send to the ioborker, because de nosing can be a challenging part of the this project. 
+
+For the wind speed and direction, the value is measured with round about 1 Hz and written into an array. The array is submitted to iobroker on every interval. The maximum size of the array is limited by the maximum length of an URL (2000 characters) to 250. The recommended interval for a "real time" display should be between 30 and 60. On the iobroker side, the array must be processed do extract the required information (see processWindSensorData.js for details).
+
+**Important: the target datapoints are not part of the json files!**
+
+
+
+#### Testing / debugging
+
+Often the remote device is mounted somewhere on a rooftop or another inconvenient place. That's where this tool comes in and offers you a simulation for your lab:
+
+[AndreasExner/RS485-UART-EchoTest: This sketch is useful for debugging and testing RS485/UART wirings. (github.com)](https://github.com/AndreasExner/RS485-UART-EchoTest)
+
+
 
 #### Wiring
 
-Both sensors require 12-24V DC power. The RS485 shield is used to convert RS485 into TTL. 
+Both sensors require 12-24V DC power. The RS485 shield is used to convert RS485 into TTL. The FT232 is used for serial1 (debug/info)
 
 <img src="https://github.com/AndreasExner/ioBroker-IoT-WindSensor/blob/main/WindSensor_Steckplatine.png?raw=true" style="zoom: 50%;" />
 
@@ -34,9 +56,32 @@ Voltage divider resistors: 330 ohm and 150 ohm, 1% or better, 1/4 watts
 
 
 
+#### UART communication
+
+It took me a lot of time to fiddle out all the challenges within the RS232/RS485 communication. Some findings are:
+
+- Ground your STP cable shield on **one** end
+- The conversation form RS232 to RS485 requires a good timing 
+- Pulling up the RE/DE pulls up RX of the ESP as well. This leads into zero frames / framing errors between the frames
+- -> CRC check / trimming of zero frames is required
+- -> The RX frame size must be known / defined
+
+
+
+
+
 ## History
 
-Version: F5_1.0 (release) 2020-12-06
+**Version: F5_1.1 2020-12-14**
+
+- Major bugfix: sketch does not work with debug=false
+- Major improvements and bugfixes for the UART communication: CRC check, remove zero bytes etc.
+- changed wind speed data transfer (for de-noising)
+- minor fixes and improvements
+
+
+
+**Version: F5_1.0 (release) 2020-12-06**
 
 
 
@@ -108,7 +153,7 @@ bool sensor_active = false; // dectivate sensor(s) on boot (do not change)
 
 
 
-#### Base URL's
+#### Device base URL's
 
 ```c++
 /*
@@ -164,7 +209,17 @@ The default path for the devices root folder is: **`0_userdata.0.IoT-Devices`**.
     http://192.168.1.240:8087/set/0_userdata.0.IoT.WindSensor.
     ```
 
+These datapoints are for output only:
 
+- **`ErrorLog`** Last info/error message from the device
+
+- **`MAC`** HW wifi mac address of the device
+
+- **`RSSI`** Last wifi RSSI information from the device
+
+- **`Reset`** Depricated
+
+  
 
 #### Specific device configuration and data
 
@@ -177,12 +232,34 @@ It is recommended to keep the datapoints in both sections identical to avoid err
 
 - **`Interval`** [10] Defines the delay (in seconds) between two data transmissions 
 - **`A0_Step_Voltage`** The voltage per step of the A/D converter for the  windspeed sensor. Due to the line resistance it might be necessary to adjust these values individually. A good point to start is 0.03 V.
-- These datapoints are for output only:
 
-- **`WindDirection`** Wind direction in degrees
-- **`WindDirectionString`** Wind direction as string
-- **`WindSpeed`** Wind speed
+These datapoints are for output only:
+
+- **`WindDirectionArray`** Array of wind direction values
+- **`WindSpeedArray`** Array of wind speed values
 - **`SensorID`** Sensor device ID
+- **`crcErrors`** CRC errors during the last interval
+- **`rxTimeOuts`** RX timeouts (missed frames) during the last interval
+
+
+
+#### Build datapoint URL's function
+
+```c++
+void build_urls() {
+
+  URL_SID = baseURL_DATA_SET + "SensorID?value=" + SensorID;
+  URL_INT = baseURL_DATA_GET + "Interval";
+
+  URL_A0_Step_Voltage = baseURL_DATA_GET + "A0_Step_Voltage";
+  URL_crcErrors = baseURL_DATA_SET + "crcErrors?value=";
+  URL_rxTimeOuts = baseURL_DATA_SET + "rxTimeOuts?value=";
+  URL_WindDirectionArray = baseURL_DATA_SET + "WindDirectionArray?value=";
+  URL_WindSpeedArray = baseURL_DATA_SET + "WindSpeedArray?value=";
+}
+```
+
+These url's are pointing to the iobroker datapoints, defined in the json files and can be changed if required.
 
 
 
@@ -214,7 +291,7 @@ Every n-th tick, defined by the **`Interval`**,  the following sequence will pro
     - Get the dynamic configuration from iobroker (generic devices section)
     - Build specific device URL's (based on the dynamic configuration)
     - Send data to iobroker
-    - Get configurationdata (A0_Step_Voltage) for wind sensor from iobroker
+    - Get configuration data (A0_Step_Voltage) for wind sensor from iobroker
     - Run setup for inactive sensors (if activated now)
     - Get the new interval (specific device section)
   - LED Blink
