@@ -10,6 +10,12 @@ Required Version: 5.3.2 (or higher)
 
 
 
+## Important: Serial output
+
+This sketch needs the hardware serial interface for the communication with the wind direction sensor (RS485). That requires to change the serial output for debug and runtime information (Serial.print) to **serial1**. The attached version of the framework includes the changes already.
+
+
+
 ## Description
 
 #### Introduction
@@ -42,11 +48,25 @@ Often the remote device is mounted somewhere on a rooftop or another inconvenien
 
 #### Wiring
 
-Both sensors require 12-24V DC power. The RS485 shield is used to convert RS485 into TTL. 
+Both sensors require 12-24V DC power. The RS485 shield is used to convert RS485 into TTL. The FT232 is used for serial1 (debug/info)
 
 <img src="https://github.com/AndreasExner/ioBroker-IoT-WindSensor/blob/main/WindSensor_Steckplatine.png?raw=true" style="zoom: 50%;" />
 
 Voltage divider resistors: 330 ohm and 150 ohm, 1% or better, 1/4 watts
+
+
+
+#### UART communication
+
+It took me a lot of time to fiddle out all the challenges within the RS232/RS485 communication. Some findings are:
+
+- Ground your STP cable shield on **one** end
+- The conversation form RS232 to RS485 requires a good timing 
+- Pulling up the RE/DE pulls up RX of the ESP as well. This leads into zero frames / framing errors between the frames
+- -> CRC check / trimming of zero frames is required
+- -> The RX frame size must be known / defined
+
+
 
 
 
@@ -55,7 +75,7 @@ Voltage divider resistors: 330 ohm and 150 ohm, 1% or better, 1/4 watts
 **Version: F5_1.1 2020-12-14**
 
 - Major bugfix: sketch does not work with debug=false
-- added CRC check for UART/RS485
+- Major improvements and bugfixes for the UART communication: CRC check, remove zero bytes etc.
 - changed wind speed data transfer (for de-noising)
 - minor fixes and improvements
 
@@ -189,7 +209,17 @@ The default path for the devices root folder is: **`0_userdata.0.IoT-Devices`**.
     http://192.168.1.240:8087/set/0_userdata.0.IoT.WindSensor.
     ```
 
+These datapoints are for output only:
 
+- **`ErrorLog`** Last info/error message from the device
+
+- **`MAC`** HW wifi mac address of the device
+
+- **`RSSI`** Last wifi RSSI information from the device
+
+- **`Reset`** Depricated
+
+  
 
 #### Specific device configuration and data
 
@@ -208,6 +238,8 @@ These datapoints are for output only:
 - **`WindDirectionArray`** Array of wind direction values
 - **`WindSpeedArray`** Array of wind speed values
 - **`SensorID`** Sensor device ID
+- **`crcErrors`** CRC errors during the last interval
+- **`rxTimeOuts`** RX timeouts (missed frames) during the last interval
 
 
 
@@ -259,7 +291,7 @@ Every n-th tick, defined by the **`Interval`**,  the following sequence will pro
     - Get the dynamic configuration from iobroker (generic devices section)
     - Build specific device URL's (based on the dynamic configuration)
     - Send data to iobroker
-    - Get configurationdata (A0_Step_Voltage) for wind sensor from iobroker
+    - Get configuration data (A0_Step_Voltage) for wind sensor from iobroker
     - Run setup for inactive sensors (if activated now)
     - Get the new interval (specific device section)
   - LED Blink
@@ -267,4 +299,3 @@ Every n-th tick, defined by the **`Interval`**,  the following sequence will pro
 
 
 ## Appendix
-
