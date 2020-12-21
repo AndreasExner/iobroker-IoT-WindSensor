@@ -3,7 +3,20 @@
   Wind speed and direction sensor for iobroker IoT Framework
 
   Version: F5_1.1 
-  Date: 2020-12-14
+  Date: 2020-12-21
+
+
+  History:
+  
+  Version: F5_1.1 2020-12-14
+
+  - Major bugfix: sketch does not work with debug=false
+  - Major improvements and bugfixes for the UART/RS485 communication: CRC check, remove zero bytes etc
+  - changed wind speed data transfer (for de-noising)
+  - minor fixes and improvements
+
+  Version: F5_1.0 (release) 2020-12-06
+  
 
   This sketch has several prerquisites discribed in the documentation of the repository:
   https://github.com/AndreasExner/ioBroker-IoT-WindSensor
@@ -55,7 +68,7 @@
 
 // device settings - change settings to match your requirements
 
-const char* ssid     = "<sid>"; // Wifi SSID
+const char* ssid     = "<ssid>"; // Wifi SSID
 const char* password = "<password>"; //Wifi password
 
 String SensorID = "07"; //predefinded sensor ID, DEV by default to prevent overwriting productive data
@@ -68,7 +81,7 @@ int interval = 10;  // waiting time for the first masurement and fallback on err
 */
 
 bool DevMode = true; //enable DEV mode on boot (do not change)
-bool debug = false; //debug to serial monitor
+bool debug = true; //debug to serial monitor
 bool led = true; //enable external status LED on boot
 bool sensor_active = false; // dectivate sensor(s) on boot (do not change)
 
@@ -98,40 +111,40 @@ String URL_SID, URL_INT; // URL's for sensor ID and interval
 
 // other definitions
 
-#define LED D4 // gpio pin for external status LED
+#define LED D3 // gpio pin for external status LED
 void(* HWReset) (void) = 0; // define reset function DO NOT CHANGE
 int counter = interval;  // countdown for next interval
 
 //+++++++++++++++++++++++++++++++++++++++++ wind sensor section +++++++++++++++++++++++++++++++++++++++++++++++++
 
 int analog_Pin = A0;
-int WindSpeed;
-
-String URL_A0_Step_Voltage, URL_WindSpeed, URL_WindDirection, URL_WindDirectionStr, URL_WindSpeedArray;
 double WindSensor_A0_Step_Voltage = 0.03; //default for 10V signal
-uint16_t WindSensor_Direction;
-String WindSensor_Direction_Str;
-bool WindSensor_Direction_activated = true;
-bool WindSensor_Direction_ready = false; 
+int crcErrors, rxTimeOuts;
 
-double WindSpeedArray[120]; //the array sizes MUST be >= interval, otherwise the code will fail during runtime! DO NOT exceed 250, otherwise the URL can be > 2000 chars
+String URL_A0_Step_Voltage, URL_crcErrors, URL_rxTimeOuts, URL_WindSpeed, URL_WindDirection, URL_WindSpeedArray, URL_WindDirectionArray;
 
+int WindSensor_Direction; //buffer for the case of CRC errors oder timeouts
+double WindSpeedArray[250]; //the array sizes MUST be >= interval, otherwise the code will fail during runtime! DO NOT exceed 250, otherwise the URL can be > 2000 chars
+int WindDirectionArray[250];  //the array sizes MUST be >= interval, otherwise the code will fail during runtime! DO NOT exceed 250, otherwise the URL can be > 2000 chars
 
-#include <SoftwareSerial.h>
+#define SERIAL_BAUD_RATE 9600 // baud rate for wind sensor DO NOT CHANGE
+#define DEBUG_BAUD_RATE 115200 // baud rate for debug via serial1
 
-#define RX D6
-#define TX D7
-#define RTS D5
-#define BAUD_RATE 9600
+#define RTS D5  // RS485 bus master
+int expectedFrameSize = 9;  // expected RX frame size
 
-SoftwareSerial RS485;
+byte request_buffer[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x02, 0xC4, 0x0B};  // TX frame to request wind direction
+int request_buffer_length = 8; // TX frame length
 
 //######################################### setup ##############################################################
 
 void setup(void) {
 
-  Serial.begin(115200);
-  delay(2000);
+  Serial1.begin(DEBUG_BAUD_RATE);
+  delay(1000);
+
+  Serial.begin(SERIAL_BAUD_RATE);
+  delay(1000);
 
   pinMode(LED, OUTPUT);
 
@@ -154,7 +167,7 @@ void setup(void) {
 
   // setup sensors
 
-  if (sensor_active && WindSensor_Direction_activated) {WindDirection_setup();}
+  if (sensor_active) {WindDirection_setup();}
 
 }
 
@@ -166,37 +179,47 @@ void build_urls() {
   URL_INT = baseURL_DATA_GET + "Interval";
 
   URL_A0_Step_Voltage = baseURL_DATA_GET + "A0_Step_Voltage";
-  URL_WindSpeed = baseURL_DATA_SET + "WindSpeed?value=";
-  URL_WindDirection = baseURL_DATA_SET + "WindDirection?value=";
-  URL_WindDirectionStr = baseURL_DATA_SET + "WindDirectionString?value=";
+  URL_crcErrors = baseURL_DATA_SET + "crcErrors?value=";
+  URL_rxTimeOuts = baseURL_DATA_SET + "rxTimeOuts?value=";
+  URL_WindDirectionArray = baseURL_DATA_SET + "WindDirectionArray?value=";
   URL_WindSpeedArray = baseURL_DATA_SET + "WindSpeedArray?value=";
 }
 
 void send_data() {
 
-  Serial.println("send data to iobroker");
+  Serial1.println("send data to iobroker");
 
     HTTPClient http;
 
     String sendURL;
 
+    sendURL = URL_crcErrors;
+    sendURL += String(crcErrors);
+    http.begin(sendURL);
+    http.GET();
+    
+    sendURL = URL_rxTimeOuts;
+    sendURL += String(rxTimeOuts);
+    http.begin(sendURL);
+    http.GET();
+    
     sendURL = URL_WindSpeedArray;
     sendURL += String(WindSpeedArray[0]);
-
     for (int i = 1; i < interval; i++) {
 
       sendURL += ",";
       sendURL += String(WindSpeedArray[i]);
     }
-    
     http.begin(sendURL);
     http.GET();
 
-    sendURL = URL_WindDirection + String(WindSensor_Direction);
-    http.begin(sendURL);
-    http.GET();
+    sendURL = URL_WindDirectionArray;
+    sendURL += String(WindDirectionArray[0]);
+    for (int i = 1; i < interval; i++) {
 
-    sendURL =URL_WindDirectionStr +WindSensor_Direction_Str;
+      sendURL += ",";
+      sendURL += String(WindDirectionArray[i]);
+    }
     http.begin(sendURL);
     http.GET();
 
@@ -222,19 +245,19 @@ void loop(void) {
 
     get_dynamic_config();
     build_urls();
-    if (WindSensor_Direction_ready) {send_data();}
+    send_data();
     WindSensor_get_config();
     
-    if (sensor_active && !WindSensor_Direction_activated) {WindDirection_setup();}
+    if (sensor_active) {WindDirection_setup();}
     
     get_interval();
     counter = interval;
-    
-
+    crcErrors = 0;
+    rxTimeOuts = 0;
   }
   else {
     counter--;
-    Serial.println(counter);
+    Serial1.println(counter);
   }
 
   // Blink LED
