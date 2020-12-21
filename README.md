@@ -50,7 +50,7 @@ Often the remote device is mounted somewhere on a rooftop or another inconvenien
 
 Both sensors require 12-24V DC power. The RS485 shield is used to convert RS485 into TTL. The FT232 is used for serial1 (debug/info)
 
-<img src="https://github.com/AndreasExner/ioBroker-IoT-WindSensor/blob/main/WindSensor_Steckplatine.png?raw=true" style="zoom: 50%;" />
+<img src="https://raw.githubusercontent.com/AndreasExner/iobroker-IoT-WindSensor/main/WindSensor_Steckplatine.png" style="zoom: 50%;" />
 
 Voltage divider resistors: 330 ohm and 150 ohm, 1% or better, 1/4 watts
 
