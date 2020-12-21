@@ -1,81 +1,77 @@
 {
-  "0_userdata.0.IoT.WindSensor.Interval": {
-    "common": {
-      "name": "Interval",
-      "role": "",
-      "type": "number",
-      "read": true,
-      "write": true
-    },
-    "native": {},
-    "acl": {
-      "object": 1636,
-      "owner": "system.user.admin",
-      "ownerGroup": "system.group.administrator",
-      "state": 1636
-    },
-    "_id": "0_userdata.0.IoT.WindSensor.Interval",
-    "type": "state"
-  },
-    "0_userdata.0.IoT.WindSensor.SensorID": {
-    "common": {
-      "name": "SensorID",
-      "role": "",
-      "type": "number",
-      "read": true,
-      "write": true
-    },
-    "native": {},
-    "acl": {
-      "object": 1636,
-      "owner": "system.user.admin",
-      "ownerGroup": "system.group.administrator",
-      "state": 1636
-    },
-    "_id": "0_userdata.0.IoT.WindSensor.SensorID",
-    "type": "state"
-  },
-  "0_userdata.0.IoT.WindSensor.rxTimeOuts": {
-    "common": {
-      "name": "rxTimeOuts",
-      "role": "",
-      "type": "number",
-      "read": true,
-      "write": true
-    },
-    "native": {},
-    "acl": {
-      "object": 1636,
-      "owner": "system.user.admin",
-      "ownerGroup": "system.group.administrator",
-      "state": 1636
-    },
-    "_id": "0_userdata.0.IoT.WindSensor.rxTimeOuts",
-    "type": "state"
-  },
-  "0_userdata.0.IoT.WindSensor.crcErrors": {
-    "_id": "0_userdata.0.IoT.WindSensor.crcErrors",
+  "0_userdata.0.IoT-Devices.07.DevMode": {
+    "_id": "0_userdata.0.IoT-Devices.07.DevMode",
     "type": "state",
     "common": {
-      "name": "crcErrors",
+      "name": "DevMode",
       "role": "",
-      "type": "number",
+      "type": "boolean",
       "read": true,
       "write": true
-	  },
+    },
     "native": {},
     "acl": {
       "object": 1636,
-      "state": 1636,
-      "owner": "system.user.admin",
-      "ownerGroup": "system.group.administrator"
+      "owner": "system.user.simpleapi",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
     }
   },
-  "0_userdata.0.IoT.WindSensor.WindDirectionArray": {
-    "_id": "0_userdata.0.IoT.WindSensor.WindDirectionArray",
+  "0_userdata.0.IoT-Devices.07.ErrorLog": {
+    "_id": "0_userdata.0.IoT-Devices.07.ErrorLog",
     "type": "state",
     "common": {
-      "name": "WindDirectionArray",
+      "name": "ErrorLog",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true,
+      "custom": {
+        "sql.0": {
+          "enabled": true,
+          "changesOnly": false,
+          "debounce": 0,
+          "maxLength": 10,
+          "retention": "31536000",
+          "changesRelogInterval": "60",
+          "changesMinDelta": 0,
+          "storageType": "",
+          "aliasId": "",
+          "counter": false
+        }
+      }
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.LED": {
+    "_id": "0_userdata.0.IoT-Devices.07.LED",
+    "type": "state",
+    "common": {
+      "name": "LEDActive",
+      "role": "",
+      "type": "boolean",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.MAC": {
+    "_id": "0_userdata.0.IoT-Devices.07.MAC",
+    "type": "state",
+    "common": {
+      "name": "MAC",
       "role": "",
       "type": "string",
       "read": true,
@@ -89,13 +85,13 @@
       "ownerGroup": "system.group.administrator"
     }
   },
-  "0_userdata.0.IoT.WindSensor.WindDSpeedArray": {
-    "_id": "0_userdata.0.IoT.WindSensor.WindSpeedArray",
+  "0_userdata.0.IoT-Devices.07.RSSI": {
+    "_id": "0_userdata.0.IoT-Devices.07.RSSI",
     "type": "state",
     "common": {
-      "name": "WindSpeedArray",
+      "name": "RSSI",
       "role": "",
-      "type": "string",
+      "type": "number",
       "read": true,
       "write": true
     },
@@ -107,13 +103,31 @@
       "ownerGroup": "system.group.administrator"
     }
   },
-
-  "0_userdata.0.IoT.WindSensor.A0_Step_Voltage": {
+  "0_userdata.0.IoT-Devices.07.Reset": {
+    "_id": "0_userdata.0.IoT-Devices.07.Reset",
+    "type": "state",
     "common": {
-      "name": "A0_Step_Voltage",
+      "name": "LastReset",
       "role": "",
-      "type": "number",
-      "unit": "V",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.simpleapi",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.SensorActive": {
+    "_id": "0_userdata.0.IoT-Devices.07.SensorActive",
+    "type": "state",
+    "common": {
+      "name": "SensorActive",
+      "role": "",
+      "type": "boolean",
       "read": true,
       "write": true
     },
@@ -123,8 +137,114 @@
       "owner": "system.user.admin",
       "ownerGroup": "system.group.administrator",
       "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.SensorIP": {
+    "_id": "0_userdata.0.IoT-Devices.07.SensorIP",
+    "type": "state",
+    "common": {
+      "name": "SensorIP",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
     },
-    "_id": "0_userdata.0.IoT.WindSensor.A0_Step_Voltage",
-    "type": "state"
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.simpleapi",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.SensorName": {
+    "_id": "0_userdata.0.IoT-Devices.07.SensorName",
+    "type": "state",
+    "common": {
+      "name": "SensorName",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.admin",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.baseURL_GET_DEV": {
+    "_id": "0_userdata.0.IoT-Devices.07.baseURL_GET_DEV",
+    "type": "state",
+    "common": {
+      "name": "baseURL_GET_DEV",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.simpleapi",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.baseURL_GET_PROD": {
+    "_id": "0_userdata.0.IoT-Devices.07.baseURL_GET_PROD",
+    "type": "state",
+    "common": {
+      "name": "baseURL_GET_PROD",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.simpleapi",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.baseURL_SET_DEV": {
+    "_id": "0_userdata.0.IoT-Devices.07.baseURL_SET_DEV",
+    "type": "state",
+    "common": {
+      "name": "baseURL_SET_DEV",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.simpleapi",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
+  },
+  "0_userdata.0.IoT-Devices.07.baseURL_SET_PROD": {
+    "_id": "0_userdata.0.IoT-Devices.07.baseURL_SET_PROD",
+    "type": "state",
+    "common": {
+      "name": "baseURL_SET_PROD",
+      "role": "",
+      "type": "string",
+      "read": true,
+      "write": true
+    },
+    "native": {},
+    "acl": {
+      "object": 1636,
+      "owner": "system.user.simpleapi",
+      "ownerGroup": "system.group.administrator",
+      "state": 1636
+    }
   }
 }
